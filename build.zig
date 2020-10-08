@@ -14,6 +14,11 @@ pub fn build(b: *Builder) void {
     const exe = b.addExecutable("hello-zig-wayland", "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
+
+    exe.addPackagePath("wayland", "deps/zig-wayland/wayland.zig");
+    exe.linkSystemLibrary("wayland-client");
+    exe.linkLibC();
+
     exe.install();
 
     const run_cmd = exe.run();
