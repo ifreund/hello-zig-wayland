@@ -1,4 +1,6 @@
-const Builder = @import("std").build.Builder;
+const std = @import("std");
+const Builder = std.build.Builder;
+const Step = std.build.Step;
 
 pub fn build(b: *Builder) void {
     // Standard target options allows the person running `zig build` to choose
@@ -11,12 +13,16 @@ pub fn build(b: *Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("hello-zig-wayland", "src/main.zig");
+    const scan_protocols = ScanProtocolsStep.create(b);
+
+    const exe = b.addExecutable("hello-zig-wayland", "hello.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
 
     exe.addPackagePath("wayland", "deps/zig-wayland/wayland.zig");
     exe.linkSystemLibrary("wayland-client");
+    exe.step.dependOn(&scan_protocols.step);
+    exe.addCSourceFile("xdg_shell.c", &[_][]const u8{"-std=c99"});
     exe.linkLibC();
 
     exe.install();
@@ -27,3 +33,38 @@ pub fn build(b: *Builder) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 }
+
+const ScanProtocolsStep = struct {
+    builder: *Builder,
+    step: Step,
+
+    fn create(builder: *Builder) *ScanProtocolsStep {
+        const self = builder.allocator.create(ScanProtocolsStep) catch @panic("out of memory");
+        self.* = init(builder);
+        return self;
+    }
+
+    fn init(builder: *Builder) ScanProtocolsStep {
+        return ScanProtocolsStep{
+            .builder = builder,
+            .step = Step.init(.Custom, "Scan Protocols", builder.allocator, make),
+        };
+    }
+
+    fn make(step: *Step) !void {
+        const self = @fieldParentPtr(ScanProtocolsStep, "step", step);
+
+        const protocol_dir = std.fmt.trim(try self.builder.exec(
+            &[_][]const u8{ "pkg-config", "--variable=pkgdatadir", "wayland-protocols" },
+        ));
+
+        const xml_path = try std.fs.path.join(self.builder.allocator, &[_][]const u8{ protocol_dir, "stable/xdg-shell/xdg-shell.xml" });
+
+        // Extension is .xml, so slice off the last 4 characters
+        const basename = std.fs.path.basename(xml_path);
+        const basename_no_ext = basename[0..(basename.len - 4)];
+        _ = try self.builder.exec(
+            &[_][]const u8{ "wayland-scanner", "private-code", xml_path, "xdg_shell.c" },
+        );
+    }
+};
