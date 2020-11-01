@@ -42,7 +42,7 @@ pub fn main() anyerror!void {
         const pool = try shm.createPool(fd, size);
         defer pool.destroy();
 
-        break :blk try pool.createBuffer(0, width, height, stride, @enumToInt(wl.Shm.Format.argb8888));
+        break :blk try pool.createBuffer(0, width, height, stride, wl.Shm.Format.argb8888);
     };
     defer buffer.destroy();
 
