@@ -70,11 +70,11 @@ pub fn main() anyerror!void {
 fn registryListener(registry: *wl.Registry, event: wl.Registry.Event, context: *Context) void {
     switch (event) {
         .global => |global| {
-            if (std.cstr.cmp(global.interface, wl.Compositor.interface().name) == 0) {
+            if (std.cstr.cmp(global.interface, wl.Compositor.getInterface().name) == 0) {
                 context.compositor = registry.bind(global.name, wl.Compositor, 1) catch return;
-            } else if (std.cstr.cmp(global.interface, wl.Shm.interface().name) == 0) {
+            } else if (std.cstr.cmp(global.interface, wl.Shm.getInterface().name) == 0) {
                 context.shm = registry.bind(global.name, wl.Shm, 1) catch return;
-            } else if (std.cstr.cmp(global.interface, xdg.WmBase.interface().name) == 0) {
+            } else if (std.cstr.cmp(global.interface, xdg.WmBase.getInterface().name) == 0) {
                 context.wm_base = registry.bind(global.name, xdg.WmBase, 1) catch return;
             }
         },
