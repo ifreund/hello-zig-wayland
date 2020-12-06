@@ -13,7 +13,7 @@ pub fn build(b: *Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const scanner = ScanProtocolsStep.create(b, "deps/zig-wayland/");
+    const scanner = ScanProtocolsStep.create(b);
     scanner.addSystemProtocol("stable/xdg-shell/xdg-shell.xml");
 
     const exe = b.addExecutable("hello-zig-wayland", "hello.zig");
