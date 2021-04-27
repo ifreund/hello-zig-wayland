@@ -21,7 +21,7 @@ pub fn main() anyerror!void {
         .wm_base = null,
     };
 
-    try registry.setListener(*Context, registryListener, &context);
+    registry.setListener(*Context, registryListener, &context);
     _ = try display.roundtrip();
 
     const shm = context.shm orelse return error.NoWlShm;
@@ -55,8 +55,8 @@ pub fn main() anyerror!void {
 
     var running = true;
 
-    try xdg_surface.setListener(*wl.Surface, xdgSurfaceListener, surface);
-    try xdg_toplevel.setListener(*bool, xdgToplevelListener, &running);
+    xdg_surface.setListener(*wl.Surface, xdgSurfaceListener, surface);
+    xdg_toplevel.setListener(*bool, xdgToplevelListener, &running);
 
     surface.commit();
     _ = try display.roundtrip();
