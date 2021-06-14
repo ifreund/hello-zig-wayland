@@ -5,21 +5,22 @@ const wayland = @import("wayland");
 const wl = wayland.client.wl;
 const xdg = wayland.client.xdg;
 
+const c = @cImport(@cInclude("linux/input-event-codes.h"));
+
 const Context = struct {
-    shm: ?*wl.Shm,
-    compositor: ?*wl.Compositor,
-    wm_base: ?*xdg.WmBase,
+    shm: ?*wl.Shm = null,
+    compositor: ?*wl.Compositor = null,
+    wm_base: ?*xdg.WmBase = null,
+
+    xdg_toplevel: ?*xdg.Toplevel = null,
+    seat: ?*wl.Seat = null,
 };
 
 pub fn main() anyerror!void {
     const display = try wl.Display.connect(null);
     const registry = try display.getRegistry();
 
-    var context = Context{
-        .shm = null,
-        .compositor = null,
-        .wm_base = null,
-    };
+    var context = Context{};
 
     registry.setListener(*Context, registryListener, &context);
     _ = try display.roundtrip();
@@ -50,13 +51,13 @@ pub fn main() anyerror!void {
     defer surface.destroy();
     const xdg_surface = try wm_base.getXdgSurface(surface);
     defer xdg_surface.destroy();
-    const xdg_toplevel = try xdg_surface.getToplevel();
-    defer xdg_toplevel.destroy();
+    context.xdg_toplevel = try xdg_surface.getToplevel();
+    defer context.xdg_toplevel.?.destroy();
 
     var running = true;
 
     xdg_surface.setListener(*wl.Surface, xdgSurfaceListener, surface);
-    xdg_toplevel.setListener(*bool, xdgToplevelListener, &running);
+    context.xdg_toplevel.?.setListener(*bool, xdgToplevelListener, &running);
 
     surface.commit();
     _ = try display.roundtrip();
@@ -72,6 +73,9 @@ fn registryListener(registry: *wl.Registry, event: wl.Registry.Event, context: *
         .global => |global| {
             if (std.cstr.cmp(global.interface, wl.Compositor.getInterface().name) == 0) {
                 context.compositor = registry.bind(global.name, wl.Compositor, 1) catch return;
+            } else if (std.cstr.cmp(global.interface, wl.Seat.getInterface().name) == 0) {
+                context.seat = registry.bind(global.name, wl.Seat, 1) catch return;
+                context.seat.?.setListener(*Context, seatListener, context);
             } else if (std.cstr.cmp(global.interface, wl.Shm.getInterface().name) == 0) {
                 context.shm = registry.bind(global.name, wl.Shm, 1) catch return;
             } else if (std.cstr.cmp(global.interface, xdg.WmBase.getInterface().name) == 0) {
@@ -79,6 +83,36 @@ fn registryListener(registry: *wl.Registry, event: wl.Registry.Event, context: *
             }
         },
         .global_remove => {},
+    }
+}
+
+fn seatListener(seat: *wl.Seat, event: wl.Seat.Event, context: *Context) void {
+    switch (event) {
+        .capabilities => |data| {
+            if (data.capabilities.pointer) {
+                const pointer = seat.getPointer() catch return;
+                pointer.setListener(*Context, pointerListener, context);
+            }
+        },
+        .name => {},
+    }
+}
+
+fn pointerListener(pointer: *wl.Pointer, event: wl.Pointer.Event, context: *Context) void {
+    switch (event) {
+        .enter => {},
+        .leave => {},
+        .motion => {},
+        .button => |data| {
+            if (data.button == c.BTN_LEFT and data.state == wl.Pointer.ButtonState.pressed) {
+                context.xdg_toplevel.?.move(context.seat.?, data.serial);
+            }
+        },
+        .frame => {},
+        .axis => {},
+        .axis_source => {},
+        .axis_stop => {},
+        .axis_discrete => {},
     }
 }
 
