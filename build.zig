@@ -16,12 +16,17 @@ pub fn build(b: *Builder) void {
     const scanner = ScanProtocolsStep.create(b);
     scanner.addSystemProtocol("stable/xdg-shell/xdg-shell.xml");
 
+    const wayland = std.build.Pkg{
+        .name = "wayland",
+        .path = .{ .generated = &scanner.result },
+    };
+
     const exe = b.addExecutable("hello-zig-wayland", "hello.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
 
     exe.step.dependOn(&scanner.step);
-    exe.addPackage(scanner.getPkg());
+    exe.addPackage(wayland);
     exe.linkLibC();
     exe.linkSystemLibrary("wayland-client");
 

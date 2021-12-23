@@ -36,7 +36,7 @@ pub fn main() anyerror!void {
 
         const fd = try os.memfd_create("hello-zig-wayland", 0);
         try os.ftruncate(fd, size);
-        const data = try os.mmap(null, size, os.PROT_READ | os.PROT_WRITE, os.MAP_SHARED, fd, 0);
+        const data = try os.mmap(null, size, os.PROT.READ | os.PROT.WRITE, os.MAP.SHARED, fd, 0);
         std.mem.copy(u8, data, @embedFile("cat.bgra"));
 
         const pool = try shm.createPool(fd, size);
@@ -91,7 +91,7 @@ fn xdgSurfaceListener(xdg_surface: *xdg.Surface, event: xdg.Surface.Event, surfa
     }
 }
 
-fn xdgToplevelListener(xdg_toplevel: *xdg.Toplevel, event: xdg.Toplevel.Event, running: *bool) void {
+fn xdgToplevelListener(_: *xdg.Toplevel, event: xdg.Toplevel.Event, running: *bool) void {
     switch (event) {
         .configure => {},
         .close => running.* = false,
