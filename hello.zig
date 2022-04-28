@@ -22,7 +22,7 @@ pub fn main() anyerror!void {
     };
 
     registry.setListener(*Context, registryListener, &context);
-    _ = try display.roundtrip();
+    if (display.roundtrip() != .SUCCESS) return error.RoundtripFailed;
 
     const shm = context.shm orelse return error.NoWlShm;
     const compositor = context.compositor orelse return error.NoWlCompositor;
@@ -59,12 +59,14 @@ pub fn main() anyerror!void {
     xdg_toplevel.setListener(*bool, xdgToplevelListener, &running);
 
     surface.commit();
-    _ = try display.roundtrip();
+    if (display.roundtrip() != .SUCCESS) return error.RoundtripFailed;
 
     surface.attach(buffer, 0, 0);
     surface.commit();
 
-    while (running) _ = try display.dispatch();
+    while (running) {
+        if (display.dispatch() != .SUCCESS) return error.DispatchFailed;
+    }
 }
 
 fn registryListener(registry: *wl.Registry, event: wl.Registry.Event, context: *Context) void {
@@ -93,7 +95,7 @@ fn xdgSurfaceListener(xdg_surface: *xdg.Surface, event: xdg.Surface.Event, surfa
 
 fn xdgToplevelListener(_: *xdg.Toplevel, event: xdg.Toplevel.Event, running: *bool) void {
     switch (event) {
-        .configure => {},
+        .configure, .configure_bounds => {},
         .close => running.* = false,
     }
 }
