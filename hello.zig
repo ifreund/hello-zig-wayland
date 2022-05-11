@@ -95,7 +95,7 @@ fn xdgSurfaceListener(xdg_surface: *xdg.Surface, event: xdg.Surface.Event, surfa
 
 fn xdgToplevelListener(_: *xdg.Toplevel, event: xdg.Toplevel.Event, running: *bool) void {
     switch (event) {
-        .configure, .configure_bounds => {},
+        .configure => {},
         .close => running.* = false,
     }
 }

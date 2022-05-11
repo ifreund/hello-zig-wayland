@@ -16,6 +16,16 @@ pub fn build(b: *Builder) void {
     const scanner = ScanProtocolsStep.create(b);
     scanner.addSystemProtocol("stable/xdg-shell/xdg-shell.xml");
 
+    // Pass the maximum version implemented by your wayland server or client.
+    // Requests, events, enums, etc. from newer versions will not be generated,
+    // ensuring forwards compatibility with newer protocol xml.
+    // This will also generate code for interfaces created using the provided
+    // global interface, in this example wl_keyboard, wl_pointer, xdg_surface,
+    // xdg_toplevel, etc. would be generated.
+    scanner.generate("wl_compositor", 1);
+    scanner.generate("wl_shm", 1);
+    scanner.generate("xdg_wm_base", 1);
+
     const wayland = std.build.Pkg{
         .name = "wayland",
         .path = .{ .generated = &scanner.result },
