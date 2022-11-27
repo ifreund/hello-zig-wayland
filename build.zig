@@ -28,7 +28,7 @@ pub fn build(b: *Builder) void {
 
     const wayland = std.build.Pkg{
         .name = "wayland",
-        .path = .{ .generated = &scanner.result },
+        .source = .{ .generated = &scanner.result },
     };
 
     const exe = b.addExecutable("hello-zig-wayland", "hello.zig");
