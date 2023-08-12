@@ -1,4 +1,5 @@
 const std = @import("std");
+const mem = std.mem;
 const os = std.os;
 
 const wayland = @import("wayland");
@@ -37,7 +38,7 @@ pub fn main() anyerror!void {
         const fd = try os.memfd_create("hello-zig-wayland", 0);
         try os.ftruncate(fd, size);
         const data = try os.mmap(null, size, os.PROT.READ | os.PROT.WRITE, os.MAP.SHARED, fd, 0);
-        std.mem.copy(u8, data, @embedFile("cat.bgra"));
+        @memcpy(data, @embedFile("cat.bgra"));
 
         const pool = try shm.createPool(fd, size);
         defer pool.destroy();
@@ -72,11 +73,11 @@ pub fn main() anyerror!void {
 fn registryListener(registry: *wl.Registry, event: wl.Registry.Event, context: *Context) void {
     switch (event) {
         .global => |global| {
-            if (std.cstr.cmp(global.interface, wl.Compositor.getInterface().name) == 0) {
+            if (mem.orderZ(u8, global.interface, wl.Compositor.getInterface().name) == .eq) {
                 context.compositor = registry.bind(global.name, wl.Compositor, 1) catch return;
-            } else if (std.cstr.cmp(global.interface, wl.Shm.getInterface().name) == 0) {
+            } else if (mem.orderZ(u8, global.interface, wl.Shm.getInterface().name) == .eq) {
                 context.shm = registry.bind(global.name, wl.Shm, 1) catch return;
-            } else if (std.cstr.cmp(global.interface, xdg.WmBase.getInterface().name) == 0) {
+            } else if (mem.orderZ(u8, global.interface, xdg.WmBase.getInterface().name) == .eq) {
                 context.wm_base = registry.bind(global.name, xdg.WmBase, 1) catch return;
             }
         },
