@@ -1,3 +1,5 @@
+Notice: This repository has moved to https://codeberg.org/ifreund/hello-zig-wayland
+
 # hello-zig-wayland
 
 A zig port of [hello-wayland](https://github.com/emersion/hello-wayland)
