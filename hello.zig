@@ -1,6 +1,6 @@
 const std = @import("std");
 const mem = std.mem;
-const os = std.os;
+const posix = std.posix;
 
 const wayland = @import("wayland");
 const wl = wayland.client.wl;
@@ -35,9 +35,16 @@ pub fn main() anyerror!void {
         const stride = width * 4;
         const size = stride * height;
 
-        const fd = try os.memfd_create("hello-zig-wayland", 0);
-        try os.ftruncate(fd, size);
-        const data = try os.mmap(null, size, os.PROT.READ | os.PROT.WRITE, os.MAP.SHARED, fd, 0);
+        const fd = try posix.memfd_create("hello-zig-wayland", 0);
+        try posix.ftruncate(fd, size);
+        const data = try posix.mmap(
+            null,
+            size,
+            posix.PROT.READ | posix.PROT.WRITE,
+            .{ .TYPE = .SHARED },
+            fd,
+            0,
+        );
         @memcpy(data, @embedFile("cat.bgra"));
 
         const pool = try shm.createPool(fd, size);

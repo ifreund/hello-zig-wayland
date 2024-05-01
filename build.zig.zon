@@ -1,0 +1,11 @@
+.{
+    .name = "hello-zig-wayland",
+    .version = "0.0.0",
+    .paths = .{""},
+    .dependencies = .{
+        .@"zig-wayland" = .{
+            .url = "https://codeberg.org/ifreund/zig-wayland/archive/c74d01307a4c200adebc9cbed2beed5711e28232.tar.gz",
+            .hash = "1220b74159cfe81440c58ca8f9eba2f94239afc9ca23a55073e48c2b6c3722a192e4",
+        },
+    },
+}
