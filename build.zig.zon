@@ -4,8 +4,8 @@
     .paths = .{""},
     .dependencies = .{
         .@"zig-wayland" = .{
-            .url = "https://codeberg.org/ifreund/zig-wayland/archive/c74d01307a4c200adebc9cbed2beed5711e28232.tar.gz",
-            .hash = "1220b74159cfe81440c58ca8f9eba2f94239afc9ca23a55073e48c2b6c3722a192e4",
+            .url = "https://codeberg.org/ifreund/zig-wayland/archive/v0.2.0.tar.gz",
+            .hash = "1220687c8c47a48ba285d26a05600f8700d37fc637e223ced3aa8324f3650bf52242",
         },
     },
 }

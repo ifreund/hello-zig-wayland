@@ -22,7 +22,7 @@ pub fn build(b: *Build) !void {
 
     const exe = b.addExecutable(.{
         .name = "hello-zig-wayland",
-        .root_source_file = .{ .path = "hello.zig" },
+        .root_source_file = b.path("hello.zig"),
         .target = target,
         .optimize = optimize,
     });
